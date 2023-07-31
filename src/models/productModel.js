@@ -30,7 +30,15 @@ const productSchema = new mongoose.Schema({
   subcategoria: {
     type: String,
     trim: true,
-  }
+  },
+  disponible: {
+    type: Boolean,
+    default: true,
+  },
+  cartRef: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Cart',
+  },
 },
   {
     timestamps: true,

@@ -6,18 +6,21 @@ import {
   actualizarProducto,
   eliminarProducto
 } from '../controllers/productController.js'
+import { authRequired } from '../middlewares/validateToken.js';
+import checkRole from '../middlewares/checkRole.js';
 
 const router = Router();
 
-router.get('/producto', listarProductos);
+router.get('/product', listarProductos);
 
-router.get('/producto/:id', obtenerProducto);
+router.get('/product/:id', obtenerProducto);
 
-router.post('/producto', crearProducto);
+// Ruta accesible solo para administradores
+router.post('/product', authRequired, checkRole(['administrator']), crearProducto);
 
-router.patch('/producto/:id', actualizarProducto);
+router.patch('/product/:id', authRequired, checkRole(['administrator']), actualizarProducto);
 
-router.delete('/producto/:id', eliminarProducto);
+router.delete('/product/:id', authRequired, checkRole(['administrator']), eliminarProducto);
 
 
 export default router;

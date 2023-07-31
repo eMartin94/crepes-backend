@@ -17,14 +17,12 @@ export const crearProducto = async (req, res) => {
   const producto = new Producto({ nombre, descripcion, precio, ingredientes, imagen, categoria, subcategoria });
   const productoCreado = await producto.save();
   res.json(productoCreado);
-
 }
 
 export const actualizarProducto = async (req, res) => {
   const producto = await Producto.findByIdAndUpdate(req.params.id, req.body, { new: true });
   if (!producto) return res.status(404).json({ message: "Producto no encontrado" })
   res.json(producto);
-
 }
 
 export const eliminarProducto = async (req, res) => {
