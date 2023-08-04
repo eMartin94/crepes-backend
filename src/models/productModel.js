@@ -18,8 +18,8 @@ const productSchema = new mongoose.Schema({
     required: true,
   },
   imagen: {
-    type: String,
-    required: true,
+    public_id: String,
+    secure_url: String,
   },
   categoria: {
     type: String,
@@ -34,6 +34,10 @@ const productSchema = new mongoose.Schema({
   disponible: {
     type: Boolean,
     default: true,
+  },
+  user: {
+    type: mongoose.Types.ObjectId,
+    ref: "User",
   },
   cartRef: {
     type: mongoose.Schema.Types.ObjectId,

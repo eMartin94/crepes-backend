@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-export const createAccessToken = (payload) => {
+export const crearTokenAcceso = (payload) => {
   return new Promise((resolve, reject) => {
     jwt.sign(
       payload,

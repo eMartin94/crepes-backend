@@ -1,12 +1,8 @@
-const checkRole = (roles) => (req, res, next) => {
+const validarRol = (roles) => (req, res, next) => {
   const { role } = req.user || {};
-  console.log(role);
-
-  if (!roles.includes(role)) {
-    return res.status(403).json({ message: 'Forbidden - Access Denied' });
-  }
-
+  if (!roles.includes(role))
+    return res.status(403).json({ message: 'Acceso denegado' });
   next();
 };
 
-export default checkRole;
+export default validarRol;
