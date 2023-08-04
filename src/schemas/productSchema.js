@@ -20,9 +20,9 @@ export const productoSchema = z.object({
     message: 'Debes proporcionar al menos un ingrediente',
   }),
   imagen: z.object({
-    public_id: z.string().optional(),
-    secure_url: z.string().optional(),
-  }).optional(),
+    public_id: z.string(),
+    secure_url: z.string(),
+  }),
   categoria: z.string({
     required_error: 'La categoría es requerida',
   }).min(3, {

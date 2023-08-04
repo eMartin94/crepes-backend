@@ -22,7 +22,7 @@ export const register = async (req, res) => {
       updatedAt: userSaved.updatedAt,
     });
   } catch (error) {
-    res.status(500).json({ message: error.message })
+    res.status(400).json({ message: error.message })
   }
 };
 
@@ -44,7 +44,7 @@ export const login = async (req, res) => {
       updatedAt: userFound.updatedAt,
     });
   } catch (error) {
-    res.status(500).json({ message: error.message })
+    res.status(400).json({ message: error.message })
   }
 };
 
@@ -88,7 +88,7 @@ export const createAdministrator = async (req, res) => {
       updatedAt: administratorSaved.updatedAt,
     });
   } catch (error) {
-    res.status(500).json({ message: error.message })
+    res.status(400).json({ message: error.message })
   }
 };
 

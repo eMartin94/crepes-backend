@@ -24,5 +24,4 @@ export const actualizarImagen = async (publicId, filePath) => {
     public_id: publicId,
     overwrite: true,
   })
-
 }
