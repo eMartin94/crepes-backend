@@ -41,3 +41,17 @@ export const verificarTokenYBuscarCarrito = async (req, res, next) => {
   }
 };
 
+export const verificarTokenYAdmin = (req, res, next) => {
+  const { token } = req.cookies;
+  if (!token) return enviarRespuestaError(res, 401, 'Unauthorized - No token provided');
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+    if (err) return enviarRespuestaError(res, 401, 'Unauthorized - Invalid token');
+    if (!decoded || !decoded.id || !decoded.role)
+      return enviarRespuestaError(res, 401, 'Unauthorized - Invalid token payload');
+    if (decoded.role !== 'administrator')
+      return enviarRespuestaError(res, 403, 'Forbidden - Admin access required');
+    req.user = decoded;
+    next();
+  });
+};

@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import {
   listarProductos,
+  listarProductosDisponibles,
   obtenerProducto,
   crearProducto,
   actualizarProducto,
@@ -8,14 +9,12 @@ import {
 } from '../controllers/productController.js'
 import { authRequired } from '../middlewares/validateToken.js';
 import validarRol from '../middlewares/checkRole.js';
-import { validarSchema } from '../middlewares/validatorMiddleware.js';
-import { productoSchema } from '../schemas/productSchema.js';
 import { fileUploadMiddleware } from '../middlewares/fileUpload.js';
-import fileUpload from "express-fileupload";
 
 const router = Router();
 
 router.get('/product', listarProductos);
+router.get('/productAvailable', listarProductosDisponibles)
 router.get('/product/:id', obtenerProducto);
 
 // Ruta accesible solo para administradores

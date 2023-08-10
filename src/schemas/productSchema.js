@@ -6,13 +6,15 @@ export const productoSchema = z.object({
   }).min(3, {
     message: 'El nombre debe contener al menos 3 caracteres',
   }).max(100, {
-    message: 'El nombre no debe exceder los 100 caracteres',
+    message: 'El nombre no debe exceder los 20 caracteres',
   }),
-  descripcion: z.string().optional(),
+  descripcion: z.string().max({
+    message: 'La descripción no debe exceder los 500 caracteres',
+  }).optional(),
   precio: z.number({
     required_error: 'El precio es requerido',
   }).min(1, {
-    message: 'El precio debe ser mayor o igual a 0',
+    message: 'El precio debe ser mayor a 0',
   }).max(1000000, { message: 'El precio no debe exceder los 1000000' }),
   ingredientes: z.array(z.string({
     required_error: 'Se requiere al menos un ingrediente',

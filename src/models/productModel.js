@@ -1,9 +1,11 @@
 import mongoose from 'mongoose';
+import mongoosePaginate from 'mongoose-paginate-v2';
 
 const productSchema = new mongoose.Schema({
   nombre: {
     type: String,
     required: true,
+    lowercase: true,
     unique: true,
     trim: true,
   },
@@ -50,5 +52,7 @@ const productSchema = new mongoose.Schema({
     versionKey: false
   }
 )
+
+productSchema.plugin(mongoosePaginate);
 
 export default mongoose.model('Producto', productSchema);
