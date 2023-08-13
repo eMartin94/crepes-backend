@@ -11,6 +11,7 @@ export const listarProductos = async (req, res) => {
     const options = {
       page,
       limit,
+      sort: { createdAt: -1 }
     }
 
     const productos = await Producto.paginate({}, options);
@@ -33,7 +34,7 @@ export const listarProductosDisponibles = async (req, res) => {
     //   limit,
     // };
     // const productosDisponibles = await Producto.paginate({ disponible: true }, options);
-    const productosDisponibles = await Producto.find({ disponible: true });
+    const productosDisponibles = await Producto.find({ disponible: true }).sort({ createdAt: -1 });
     res.json(productosDisponibles);
   } catch (error) {
     res.status(400).json({ error: 'Error al obtener la lista de productos disponibles' });

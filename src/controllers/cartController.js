@@ -1,19 +1,56 @@
 import Cart from '../models/cartModel.js';
 import Producto from '../models/productModel.js';
 
+// export const listarCarrito = async (req, res) => {
+//   const { cart } = req;
+//   console.log(cart);
+//   return res.json({ cart });
+// };
+
 export const listarCarrito = async (req, res) => {
   const { cart } = req;
-  return res.json({ cart });
+
+  try {
+    const cartItems = await Promise.all(cart.items.map(async item => {
+      const populatedProduct = await Producto.findById(item.product).select('nombre precio categoria disponible imagen.secure_url descripcion subcategoria');
+      return {
+        product: populatedProduct,
+        cantidad: item.cantidad,
+        _id: item._id
+      };
+    }));
+
+    const populatedCart = {
+      _id: cart._id,
+      user: cart.user,
+      items: cartItems,
+      createdAt: cart.createdAt,
+      updatedAt: cart.updatedAt
+    };
+
+    return res.json({ cart: populatedCart });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: 'Error al listar el carrito' });
+  }
 };
+
+
+
 
 export const listarCarritos = async (req, res) => {
   try {
-    const allCarts = await Cart.find().populate('user', 'username');
+    const allCarts = await Cart.find()
+      .populate('user', 'username')
+      // .populate('items.product'); // Agregar esto para obtener información del producto
+      .populate('items.product', 'nombre precio categoria disponible imagen.secure_url descripcion subcategoria');
+
     return res.json({ carts: allCarts });
   } catch (error) {
     return res.status(500).json({ message: 'Error al listar carritos' });
   }
 };
+
 
 export const agregarCarrito = async (req, res) => {
   const { cart } = req;
@@ -37,6 +74,9 @@ export const agregarCarrito = async (req, res) => {
   }
 
 };
+
+
+
 
 export const eliminarCarrito = async (req, res) => {
   const { cart } = req;

@@ -37,6 +37,7 @@ export const verificarTokenYBuscarCarrito = async (req, res, next) => {
     });
   } else {
     req.cart = { items: parseCartFromCookie(cartCookie) };
+    // req.user = null;
     next();
   }
 };
