@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
-export const categoriaSchema = z.object({
-  nombre: z.string({
+export const categoryValidationSchema = z.object({
+  name: z.string({
     required_error: 'El nombre es requerido',
   }).min(3, {
     message: 'El nombre debe contener al menos 3 caracteres',

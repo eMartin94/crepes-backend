@@ -1,26 +1,26 @@
 import { Router } from 'express';
 import {
-  listarProductos,
-  listarProductosDisponibles,
-  obtenerProducto,
-  crearProducto,
-  actualizarProducto,
-  eliminarProducto
+  listProducts,
+  listAvailableProducts,
+  getProductById,
+  createProduct,
+  updateProduct,
+  deleteProduct
 } from '../controllers/productController.js'
 import { authRequired } from '../middlewares/validateToken.js';
-import validarRol from '../middlewares/checkRole.js';
+import validateRole from '../middlewares/checkRole.js';
 import { fileUploadMiddleware } from '../middlewares/fileUpload.js';
 
 const router = Router();
 
-router.get('/product', listarProductos);
-router.get('/productAvailable', listarProductosDisponibles)
-router.get('/product/:id', obtenerProducto);
+router.get('/product', listProducts);
+router.get('/productAvailable', listAvailableProducts)
+router.get('/product/:id', getProductById);
 
 // Ruta accesible solo para administradores
-router.post('/product', authRequired, validarRol(['administrator']), fileUploadMiddleware, crearProducto);
-router.patch('/product/:id', authRequired, validarRol(['administrator']), fileUploadMiddleware, actualizarProducto);
-router.delete('/product/:id', authRequired, validarRol(['administrator']), eliminarProducto);
+router.post('/product', authRequired, validateRole(['administrator']), fileUploadMiddleware, createProduct);
+router.patch('/product/:id', authRequired, validateRole(['administrator']), fileUploadMiddleware, updateProduct);
+router.delete('/product/:id', authRequired, validateRole(['administrator']), deleteProduct);
 
 
 export default router;

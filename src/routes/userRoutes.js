@@ -1,12 +1,17 @@
 import { Router } from 'express';
-import { actualizarRolUsuario, crearUsuario, listarUsuarios, obtenerUsuario } from '../controllers/userController.js';
-import { verificarTokenYAdmin } from '../middlewares/validateToken.js';
+import {
+  updateUserRole,
+  createUser,
+  listUsers,
+  getUserById,
+} from '../controllers/userController.js';
+import { verifyTokenAndAdmin } from '../middlewares/validateToken.js';
 
 const router = Router();
 
-router.get('/user', verificarTokenYAdmin, listarUsuarios);
-router.get('/user/:userId', verificarTokenYAdmin, obtenerUsuario);
-router.post('/user', verificarTokenYAdmin, crearUsuario);
-router.patch('/user/:userId', verificarTokenYAdmin, actualizarRolUsuario);
+router.get('/user', verifyTokenAndAdmin, listUsers);
+router.get('/user/:userId', verifyTokenAndAdmin, getUserById);
+router.post('/user', verifyTokenAndAdmin, createUser);
+router.patch('/user/:userId', verifyTokenAndAdmin, updateUserRole);
 
 export default router;

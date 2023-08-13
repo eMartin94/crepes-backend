@@ -1,4 +1,4 @@
-const validarRol = (roles) => (req, res, next) => {
+const validateRole = (roles) => (req, res, next) => {
   // console.log('Usuario autenticado:', req.user);
   const { role } = req.user || {};
   // console.log('Roles del usuario:', role);
@@ -9,4 +9,4 @@ const validarRol = (roles) => (req, res, next) => {
   next();
 };
 
-export default validarRol;
+export default validateRole;

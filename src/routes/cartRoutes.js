@@ -1,14 +1,22 @@
-// cartRoutes.js
 import { Router } from 'express';
-import { listarCarrito, listarCarritos, agregarCarrito, eliminarCarrito, actualizarCantidadCarrito } from '../controllers/cartController.js';
-import { verificarTokenYBuscarCarrito, verificarTokenYAdmin } from '../middlewares/validateToken.js';
+import {
+  listCart,
+  listAllCarts,
+  addToCart,
+  removeFromCart,
+  updateItemQuantity,
+} from '../controllers/cartController.js';
+import {
+  verifyTokenAndFindCart,
+  verifyTokenAndAdmin,
+} from '../middlewares/validateToken.js';
 
 const router = Router();
 
-router.get('/cart', verificarTokenYBuscarCarrito, listarCarrito);
-router.get('/carts', verificarTokenYAdmin, listarCarritos);
-router.post('/cart', verificarTokenYBuscarCarrito, agregarCarrito);
-router.delete('/cart/:productId', verificarTokenYBuscarCarrito, eliminarCarrito);
-router.patch('/cart/:productId', verificarTokenYBuscarCarrito, actualizarCantidadCarrito);
+router.get('/cart', verifyTokenAndFindCart, listCart);
+router.get('/carts', verifyTokenAndAdmin, listAllCarts);
+router.post('/cart', verifyTokenAndFindCart, addToCart);
+router.delete('/cart/:productId', verifyTokenAndFindCart, removeFromCart);
+router.patch('/cart/:productId', verifyTokenAndFindCart, updateItemQuantity);
 
 export default router;

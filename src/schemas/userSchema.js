@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const usuarioSchema = z.object({
+export const userValidationSchema = z.object({
   username: z.string({
     required_error: 'El nombre de usuario es requerido',
   }).min(6, {

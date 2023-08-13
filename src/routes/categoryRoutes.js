@@ -1,20 +1,20 @@
 import { Router } from 'express';
 import {
-  listarCategorias,
-  obtenerCategoria,
-  crearCategoria,
-  actualizarCategoria,
-  eliminarCategoria
+  listCategory,
+  getCategoryById,
+  createCategory,
+  updateCategory,
+  deleteCategory
 } from '../controllers/categoryController.js';
 import { authRequired } from '../middlewares/validateToken.js';
-import validarRol from '../middlewares/checkRole.js';
+import validateRole from '../middlewares/checkRole.js';
 
 const router = Router();
 
-router.get('/category', listarCategorias);
-router.get('/category/:id', obtenerCategoria);
-router.post('/category', authRequired, validarRol(['administrator']), crearCategoria);
-router.patch('/category/:id', authRequired, validarRol(['administrator']), actualizarCategoria);
-router.delete('/category/:id', authRequired, validarRol(['administrator']), eliminarCategoria);
+router.get('/category', listCategory);
+router.get('/category/:id', getCategoryById);
+router.post('/category', authRequired, validateRole(['administrator']), createCategory);
+router.patch('/category/:id', authRequired, validateRole(['administrator']), updateCategory);
+router.delete('/category/:id', authRequired, validateRole(['administrator']), deleteCategory);
 
 export default router;

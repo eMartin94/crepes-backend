@@ -1,9 +1,9 @@
-import Producto from '../models/productModel.js';
-import { subirImagen, actualizarImagen, eliminarImagen } from '../libs/cloudinary.js';
+import Product from '../models/productModel.js';
+import { uploadImage, updateImage, deleteImage } from '../libs/cloudinary.js';
 import fs from 'fs-extra';
-import { productoSchema } from '../schemas/productSchema.js';
+import { productValidationSchema } from '../schemas/productSchema.js';
 
-export const listarProductos = async (req, res) => {
+export const listProducts = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 30;
@@ -11,21 +11,21 @@ export const listarProductos = async (req, res) => {
     const options = {
       page,
       limit,
-      sort: { createdAt: -1 }
-    }
+      sort: { createdAt: -1 },
+    };
 
-    const productos = await Producto.paginate({}, options);
-    res.json(productos);
+    const products = await Product.paginate({}, options);
+    res.json(products);
   } catch (error) {
     res.status(400).json({ error: 'Error al obtener la lista de productos' });
   }
 };
 
-export const listarProductosDisponibles = async (req, res) => {
+export const listAvailableProducts = async (req, res) => {
   try {
     // const page = parseInt(req.query.page) || 1;
     // let limit = parseInt(req.query.limit) || 10;
-    // const maxLimit = 50; 
+    // const maxLimit = 50;
     // if (limit > maxLimit) {
     //   limit = maxLimit;
     // }
@@ -33,62 +33,61 @@ export const listarProductosDisponibles = async (req, res) => {
     //   page,
     //   limit,
     // };
-    // const productosDisponibles = await Producto.paginate({ disponible: true }, options);
-    const productosDisponibles = await Producto.find({ disponible: true }).sort({ createdAt: -1 });
-    res.json(productosDisponibles);
+    // const availableProducts = await Product.paginate({ available: true }, options);
+    const availableProducts = await Product.find({ available: true }).sort({ createdAt: -1 });
+    res.json(availableProducts);
   } catch (error) {
     res.status(400).json({ error: 'Error al obtener la lista de productos disponibles' });
   }
 };
 
-
-export const obtenerProducto = async (req, res) => {
+export const getProductById = async (req, res) => {
   try {
-    const producto = await Producto.findById(req.params.id);
-    if (!producto) return res.status(404).json({ message: 'Producto no encontrado' });
-    res.json(producto);
+    const product = await Product.findById(req.params.id);
+    if (!product) return res.status(404).json({ message: 'Producto no encontrado' });
+    res.json(product);
   } catch (error) {
     res.status(400).json({ error: 'Error al obtener el producto' });
   }
 };
 
-export const crearProducto = async (req, res) => {
+export const createProduct = async (req, res) => {
   try {
-    const { nombre, descripcion, categoria, subcategoria } = req.body;
-    const precio = parseFloat(req.body.precio);
-    const isDisponible = req.body.disponible === 'true';
-    const ingredientes = req.body.ingredientes.split(',').map((ingrediente) => ingrediente.trim());
-    const campoProducto = {
-      nombre,
-      descripcion,
-      precio,
-      ingredientes,
-      categoria,
-      subcategoria,
-      disponible: isDisponible,
+    const { name, description, category, subcategory } = req.body;
+    const price = parseFloat(req.body.price);
+    const isAvailable = req.body.available === 'true';
+    const ingredients = req.body.ingredients.split(',').map((ingredient) => ingredient.trim());
+    const inputProduct = {
+      name,
+      description,
+      price,
+      ingredients,
+      category,
+      subcategory,
+      available: isAvailable,
     };
 
-    const validarCampos = productoSchema.parse(campoProducto);
-    const producto = new Producto({ ...validarCampos, user: req.user.id });
-    console.log(producto);
-    const productoExiste = await Producto.findOne({ nombre: validarCampos.nombre });
-    if (productoExiste)
+    const validateInput = productValidationSchema.parse(inputProduct);
+    const product = new Product({ ...validateInput, user: req.user.id });
+    console.log(product);
+    const existingProduct = await Product.findOne({ nombre: validateInput.name });
+    if (existingProduct)
       return res
         .status(409)
         .json({ message: 'El nombre del producto ya existe. Por favor, elija otro nombre.' });
 
     if (req.files?.image) {
       console.log(req.files?.image);
-      const result = await subirImagen(req.files.image.tempFilePath);
-      producto.imagen = {
+      const result = await uploadImage(req.files.image.tempFilePath);
+      product.imagen = {
         public_id: result.public_id,
         secure_url: result.secure_url,
       };
       await fs.unlink(req.files.image.tempFilePath);
     }
 
-    const productoCreado = await producto.save();
-    return res.json(productoCreado);
+    const newProduct = await product.save();
+    return res.json(newProduct);
   } catch (error) {
     console.log(error);
     res.status(400).json(error.errors.map((error) => error.message));
@@ -98,76 +97,63 @@ export const crearProducto = async (req, res) => {
       if (fs.existsSync(tempFilePath)) {
         try {
           await fs.unlink(tempFilePath);
-          console.log("Imagen temporal eliminada correctamente.");
+          console.log('Imagen temporal eliminada correctamente.');
         } catch (error) {
-          console.error("Error al eliminar la imagen temporal:", error);
+          console.error('Error al eliminar la imagen temporal:', error);
         }
       } else {
-        console.warn("El archivo temporal no existe:", tempFilePath);
+        console.warn('El archivo temporal no existe:', tempFilePath);
       }
     }
   }
 };
 
-export const actualizarProducto = async (req, res) => {
+export const updateProduct = async (req, res) => {
   try {
-    const {
-      nombre,
-      descripcion,
-      categoria,
-      subcategoria,
-      disponible,
-      precio,
-      ingredientes,
-    } = req.body;
-    const isDisponible = req.body.disponible === 'true';
+    const { name, description, category, subcategory, available, price, ingredients } = req.body;
+    const isAvailable = req.body.available === 'true';
 
-    const actualizarCampo = {};
-    if (nombre) actualizarCampo.nombre = nombre;
-    if (descripcion) actualizarCampo.descripcion = descripcion;
-    if (categoria) actualizarCampo.categoria = categoria;
-    if (subcategoria) actualizarCampo.subcategoria = subcategoria;
-    if (disponible) actualizarCampo.disponible = isDisponible;
-    if (precio !== undefined) actualizarCampo.precio = parseFloat(precio);
-    if (ingredientes) {
-      actualizarCampo.ingredientes = ingredientes
-        .split(',')
-        .map((ingrediente) => ingrediente.trim());
+    const inputUpdate = {};
+    if (name) inputUpdate.name = name;
+    if (description) inputUpdate.description = description;
+    if (category) inputUpdate.category = category;
+    if (subcategory) inputUpdate.subcategory = subcategory;
+    if (available) inputUpdate.available = isAvailable;
+    if (price !== undefined) inputUpdate.price = parseFloat(price);
+    if (ingredients) {
+      inputUpdate.ingredients = ingredients.split(',').map((ingredient) => ingredient.trim());
     }
 
-    const producto = await Producto.findById(req.params.id);
-    const validarCampos = productoSchema.parse(actualizarCampo);
-    const productoExiste = await Producto.findOne({ nombre: validarCampos.nombre });
-    if (productoExiste && productoExiste._id.toString() !== producto._id.toString()) {
+    const product = await Product.findById(req.params.id);
+    const validateInput = productValidationSchema.parse(inputUpdate);
+    const existingProduct = await Product.findOne({ name: validateInput.name });
+    if (existingProduct && existingProduct._id.toString() !== product._id.toString()) {
       return res
         .status(409)
         .json({ message: 'El nombre del producto ya existe. Por favor, elija otro nombre.' });
     }
 
     if (req.files?.image) {
-      if (producto.imagen && producto.imagen?.public_id) {
-        await eliminarImagen(producto.imagen?.public_id);
+      if (product.imagen && product.imagen?.public_id) {
+        await deleteImage(product.imagen?.public_id);
       }
-      const result = await actualizarImagen(
-        producto.imagen?.public_id,
-        req.files.image.tempFilePath
-      );
-      actualizarCampo.imagen = {
+      const result = await updateImage(product.imagen?.public_id, req.files.image.tempFilePath);
+      inputUpdate.imagen = {
         public_id: result.public_id,
         secure_url: result.secure_url,
       };
       await fs.unlink(req.files.image.tempFilePath);
     }
 
-    const productoId = req.params.id;
-    const productoActualizado = await Producto.findOneAndUpdate(
-      { _id: productoId, user: req.user.id },
-      actualizarCampo,
+    const productId = req.params.id;
+    const updatedProduct = await Product.findOneAndUpdate(
+      { _id: productId, user: req.user.id },
+      inputUpdate,
       { new: true }
     );
 
-    if (!productoActualizado) return res.status(404).json({ error: 'Producto no encontrado' });
-    return res.json(productoActualizado);
+    if (!updatedProduct) return res.status(404).json({ error: 'Producto no encontrado' });
+    return res.json(updatedProduct);
   } catch (error) {
     console.log(error);
     return res.status(400).json(error.errors.map((error) => error.message));
@@ -177,25 +163,24 @@ export const actualizarProducto = async (req, res) => {
       if (fs.existsSync(tempFilePath)) {
         try {
           await fs.unlink(tempFilePath);
-          console.log("Imagen temporal eliminada correctamente.");
+          console.log('Imagen temporal eliminada correctamente.');
         } catch (error) {
-          console.error("Error al eliminar la imagen temporal:", error);
+          console.error('Error al eliminar la imagen temporal:', error);
         }
       } else {
-        console.warn("El archivo temporal no existe:", tempFilePath);
+        console.warn('El archivo temporal no existe:', tempFilePath);
       }
     }
   }
 };
 
-export const eliminarProducto = async (req, res) => {
+export const deleteProduct = async (req, res) => {
   try {
-    const producto = await Producto.findByIdAndDelete(req.params.id);
-    if (!producto) return res.status(404).json({ message: 'Producto no encontrado' });
-    if (producto.imagen && producto.imagen.public_id)
-      await eliminarImagen(producto.imagen.public_id);
+    const product = await Product.findByIdAndDelete(req.params.id);
+    if (!product) return res.status(404).json({ message: 'Producto no encontrado' });
+    if (product.imagen && product.imagen.public_id) await deleteImage(product.imagen.public_id);
 
-    res.json(producto);
+    res.json(product);
   } catch (error) {
     res.status(400).json({ error: 'Error al eliminar el producto' });
   }

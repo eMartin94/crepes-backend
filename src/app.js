@@ -9,7 +9,6 @@ import cartRoutes from './routes/cartRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
 import cookieParser from 'cookie-parser';
 import session from 'express-session';
-import fileUpload from "express-fileupload";
 import dotenv from 'dotenv';
 dotenv.config();
 const app = express();
@@ -31,13 +30,15 @@ app.use(
     },
   })
 );
-app.use(cors({
-  origin: [process.env.FRONTEND_URL_LOCAL, process.env.FRONTEND_URL_PRODUCCION],
-  methods: ['GET', 'POST', 'PATCH', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true,
-  optionsSuccessStatus: 200
-}));
+app.use(
+  cors({
+    origin: [process.env.FRONTEND_URL_LOCAL, process.env.FRONTEND_URL_PRODUCCION],
+    methods: ['GET', 'POST', 'PATCH', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
+    optionsSuccessStatus: 200,
+  })
+);
 app.use(cookieParser());
 
 // app.use(fileUpload({

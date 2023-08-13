@@ -14,25 +14,25 @@ export const authRequired = (req, res, next) => {
   });
 };
 
-const enviarRespuestaError = (res, estado, mensaje) => res.status(estado).json({ mensaje });
+const sendErrorResponse = (res, status, message) => res.status(status).json({ message });
 
-const buscarOCrearCarrito = async (userId) => {
+const searchCreateCart = async (userId) => {
   if (!userId) return { items: [] };
   let cart = await Cart.findOne({ user: userId });
   if (!cart) cart = await Cart.create({ user: userId, items: [] });
   return cart;
 };
 
-export const verificarTokenYBuscarCarrito = async (req, res, next) => {
+export const verifyTokenAndFindCart = async (req, res, next) => {
   const { token } = req.cookies;
   const cartCookie = req.cookies.cart;
   if (token) {
     jwt.verify(token, process.env.JWT_SECRET, async (err, decoded) => {
-      if (err) return enviarRespuestaError(res, 401, 'Unauthorized - Invalid token');
+      if (err) return sendErrorResponse(res, 401, 'Unauthorized - Invalid token');
       if (!decoded || !decoded.id || !decoded.role)
-        return enviarRespuestaError(res, 401, 'Unauthorized - Invalid token payload');
+        return sendErrorResponse(res, 401, 'Unauthorized - Invalid token payload');
       req.user = decoded;
-      req.cart = await buscarOCrearCarrito(decoded.id);
+      req.cart = await searchCreateCart(decoded.id);
       next();
     });
   } else {
@@ -42,16 +42,16 @@ export const verificarTokenYBuscarCarrito = async (req, res, next) => {
   }
 };
 
-export const verificarTokenYAdmin = (req, res, next) => {
+export const verifyTokenAndAdmin = (req, res, next) => {
   const { token } = req.cookies;
-  if (!token) return enviarRespuestaError(res, 401, 'Unauthorized - No token provided');
+  if (!token) return sendErrorResponse(res, 401, 'Unauthorized - No token provided');
 
   jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-    if (err) return enviarRespuestaError(res, 401, 'Unauthorized - Invalid token');
+    if (err) return sendErrorResponse(res, 401, 'Unauthorized - Invalid token');
     if (!decoded || !decoded.id || !decoded.role)
-      return enviarRespuestaError(res, 401, 'Unauthorized - Invalid token payload');
+      return sendErrorResponse(res, 401, 'Unauthorized - Invalid token payload');
     if (decoded.role !== 'administrator')
-      return enviarRespuestaError(res, 403, 'Forbidden - Admin access required');
+      return sendErrorResponse(res, 403, 'Forbidden - Admin access required');
     req.user = decoded;
     next();
   });
