@@ -10,6 +10,7 @@ import orderRoutes from './routes/orderRoutes.js';
 import cookieParser from 'cookie-parser';
 import session from 'express-session';
 import dotenv from 'dotenv';
+import createPaymentIntent from './routes/paymentRoutes.js';
 dotenv.config();
 const app = express();
 
@@ -53,5 +54,6 @@ app.use('/api', productRoutes);
 app.use('/api', categoryRoutes);
 app.use('/api', cartRoutes);
 app.use('/api', orderRoutes);
+app.use('/api', createPaymentIntent);
 
 export default app;

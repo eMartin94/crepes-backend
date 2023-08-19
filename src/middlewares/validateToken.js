@@ -23,25 +23,6 @@ const searchCreateCart = async (userId) => {
   return cart;
 };
 
-export const verifyTokenAndFindCart = async (req, res, next) => {
-  const { token } = req.cookies;
-  const cartCookie = req.cookies.cart;
-  if (token) {
-    jwt.verify(token, process.env.JWT_SECRET, async (err, decoded) => {
-      if (err) return sendErrorResponse(res, 401, 'Unauthorized - Invalid token');
-      if (!decoded || !decoded.id || !decoded.role)
-        return sendErrorResponse(res, 401, 'Unauthorized - Invalid token payload');
-      req.user = decoded;
-      req.cart = await searchCreateCart(decoded.id);
-      next();
-    });
-  } else {
-    req.cart = { items: parseCartFromCookie(cartCookie) };
-    // req.user = null;
-    next();
-  }
-};
-
 export const verifyTokenAndAdmin = (req, res, next) => {
   const { token } = req.cookies;
   if (!token) return sendErrorResponse(res, 401, 'Unauthorized - No token provided');
@@ -56,3 +37,38 @@ export const verifyTokenAndAdmin = (req, res, next) => {
     next();
   });
 };
+
+function generateUniqueCartId() {
+  const uniqueId = Math.random().toString(36).substr(2, 9);
+  return `tempCart_${uniqueId}`;
+}
+
+export const verifyTokenAndFindCart = async (req, res, next) => {
+  const { token } = req.cookies;
+  const cartCookie = req.cookies.cart;
+  let temporaryCartId = req.cookies.tempCartId;
+
+  if (token) {
+    jwt.verify(token, process.env.JWT_SECRET, async (err, decoded) => {
+      if (err) return sendErrorResponse(res, 401, 'Unauthorized - Invalid token');
+      if (!decoded || !decoded.id || !decoded.role)
+        return sendErrorResponse(res, 401, 'Unauthorized - Invalid token payload');
+
+      req.user = decoded;
+      req.cart = await searchCreateCart(decoded.id);
+      next();
+    });
+  } else {
+
+    if (!temporaryCartId) {
+      temporaryCartId = generateUniqueCartId();
+      res.cookie('tempCartId', temporaryCartId);
+    }
+
+    req.cart = { _id: temporaryCartId, items: parseCartFromCookie(cartCookie) };
+    next();
+  }
+};
+
+
+

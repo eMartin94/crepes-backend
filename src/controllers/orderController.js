@@ -3,14 +3,13 @@ import Order from '../models/orderModel.js';
 import OrderNumber from '../models/orderNumberModel.js';
 
 export const createOrder = async (req, res) => {
-  const { cart } = req;
-  console.log(cart);
-  if (!req.user) return res.status(401).json({ message: 'Unauthorized - Usuario no encontrado' });
+  const { user, cart } = req;
 
   if (!cart.items || cart.items.length === 0)
     return res.status(400).json({ message: 'El carrito está vacío' });
 
   try {
+
     const productIds = cart.items.map((item) => item.product);
     const products = await Product.find({
       _id: { $in: productIds },
@@ -38,14 +37,22 @@ export const createOrder = async (req, res) => {
     const formattedOrderNumber = `CN${String(counter.value).padStart(7, '0')}`;
 
     const order = await Order.create({
-      user: req.user.id,
+      user: user ? user._id : null,
       items: itemsWithPrice,
       totalAmount,
       nroOrder: formattedOrderNumber,
     });
 
-    cart.items = [];
-    await cart.save();
+
+    if (user) {
+      cart.items = [];
+      await cart.save();
+    } else {
+      console.log(cart.items);
+      res.clearCookie('tempCartId');
+      res.clearCookie('cart');
+      // return res.json({ order, message: 'Carrito temporal limpiado' });
+    }
 
     return res.json({ order });
   } catch (error) {
