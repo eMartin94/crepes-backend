@@ -24,6 +24,28 @@ const OrderModelSchema = new mongoose.Schema(
       // required: true,
     },
     items: [OrderItemSchema],
+    contactName: {
+      type: String,
+    },
+    codCustomer: {
+      type: String,
+    },
+    contactPhone: {
+      type: String,
+    },
+    contactEmail: {
+      type: String,
+    },
+    shippingAddress: {
+      type: String,
+    },
+    shippingCost: {
+      type: Number,
+      // required: true,
+    },
+    paymentStatus: {
+      type: String,
+    },
     totalAmount: {
       type: Number,
       required: true,

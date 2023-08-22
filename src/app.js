@@ -7,16 +7,14 @@ import authRoutes from './routes/authRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import cartRoutes from './routes/cartRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
+import stripeRoutes from './routes/stripeRoutes.js';
 import cookieParser from 'cookie-parser';
 import session from 'express-session';
 import dotenv from 'dotenv';
-import createPaymentIntent from './routes/paymentRoutes.js';
 dotenv.config();
 const app = express();
 
 app.use(morgan('dev'));
-
-app.use(express.json());
 
 app.use(
   session({
@@ -31,6 +29,7 @@ app.use(
     },
   })
 );
+
 app.use(
   cors({
     origin: [process.env.FRONTEND_URL_LOCAL, process.env.FRONTEND_URL_PRODUCCION],
@@ -40,20 +39,16 @@ app.use(
     optionsSuccessStatus: 200,
   })
 );
+
 app.use(cookieParser());
 
-// app.use(fileUpload({
-//   useTempFiles: true,
-//   tempFileDir: "./uploads",
-// })
-// )
-// app.use(cors());
+app.use('/api', stripeRoutes);
+app.use(express.json());
 app.use('/api', authRoutes);
 app.use('/api', userRoutes);
 app.use('/api', productRoutes);
 app.use('/api', categoryRoutes);
 app.use('/api', cartRoutes);
 app.use('/api', orderRoutes);
-app.use('/api', createPaymentIntent);
 
 export default app;

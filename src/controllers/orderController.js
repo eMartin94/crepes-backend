@@ -1,14 +1,14 @@
 import Product from '../models/productModel.js';
 import Order from '../models/orderModel.js';
 import OrderNumber from '../models/orderNumberModel.js';
+import Cart from '../models/cartModel.js';
 
-export const createOrder = async (req, res) => {
-  const { user, cart } = req;
-
-  if (!cart.items || cart.items.length === 0)
-    return res.status(400).json({ message: 'El carrito está vacío' });
-
+export const createOrder = async (customer, data) => {
   try {
+    const cart = JSON.parse(customer.metadata.cart);
+    const user = JSON.stringify(customer.metadata.userId);
+
+    if (!cart) return res.status(404).json({ message: 'Carrito no encontrado' });
 
     const productIds = cart.items.map((item) => item.product);
     const products = await Product.find({
@@ -24,10 +24,13 @@ export const createOrder = async (req, res) => {
       };
     });
 
-    const totalAmount = itemsWithPrice.reduce(
-      (total, item) => total + item.price * item.quantity,
-      0
-    );
+    const address = data.customer_details.address.line1 + ', ' + data.customer_details.address.city;
+    const amount_subtotal = data.amount_subtotal;
+    const shippingCost = data.shipping_cost.amount_total;
+
+    let paymentStatus;
+    // data.payment_status === 'paid' ? (paymentStatus = 'Pagado') : (paymentStatus = 'Pendiente');
+    data.status === 'complete' ? (paymentStatus = 'Pagado') : (paymentStatus = 'Fallido');
 
     const counter = await OrderNumber.findOneAndUpdate(
       { name: 'orderCounter' },
@@ -37,27 +40,32 @@ export const createOrder = async (req, res) => {
     const formattedOrderNumber = `CN${String(counter.value).padStart(7, '0')}`;
 
     const order = await Order.create({
-      user: user ? user._id : null,
+      user: user ? user.id : null,
       items: itemsWithPrice,
-      totalAmount,
+      codCustomer: data.customer,
+      contactName: data.customer_details.name,
+      contactPhone: data.customer_details.phone,
+      contactEmail: data.customer_details.email,
+      shippingAddress: address,
+      shippingCost: shippingCost / 100,
+      paymentStatus: paymentStatus,
+      totalAmount: (amount_subtotal + shippingCost) / 100,
       nroOrder: formattedOrderNumber,
     });
 
-
     if (user) {
-      cart.items = [];
-      await cart.save();
+      const foundCart = await Cart.findById(cart._id);
+      if (foundCart) {
+        foundCart.items = [];
+        await foundCart.save();
+      }
     } else {
-      console.log(cart.items);
-      res.clearCookie('tempCartId');
-      res.clearCookie('cart');
-      // return res.json({ order, message: 'Carrito temporal limpiado' });
+      //
     }
 
-    return res.json({ order });
-  } catch (error) {
-    console.log(error);
-    return res.status(500).json({ message: 'Error al crear la orden' });
+    console.log('Order created:', order);
+  } catch (err) {
+    console.log('Error creating order:', err);
   }
 };
 
