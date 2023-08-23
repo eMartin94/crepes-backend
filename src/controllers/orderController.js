@@ -24,13 +24,13 @@ export const createOrder = async (customer, data) => {
       };
     });
 
-    const address = data.customer_details.address.line1 + ', ' + data.customer_details.address.city;
-    const amount_subtotal = data.amount_subtotal;
+    const address = `${data.customer_address.line1}, ${data.customer_address.city}, ${data.customer_address.country}`;
+    const amount_subtotal = data.subtotal;
     const shippingCost = data.shipping_cost.amount_total;
-
+    const total = data.total;
     let paymentStatus;
     // data.payment_status === 'paid' ? (paymentStatus = 'Pagado') : (paymentStatus = 'Pendiente');
-    data.status === 'complete' ? (paymentStatus = 'Pagado') : (paymentStatus = 'Fallido');
+    data.status === 'paid' ? (paymentStatus = 'Pagado') : (paymentStatus = 'Fallido');
 
     const counter = await OrderNumber.findOneAndUpdate(
       { name: 'orderCounter' },
@@ -43,13 +43,15 @@ export const createOrder = async (customer, data) => {
       user: user ? user.id : null,
       items: itemsWithPrice,
       codCustomer: data.customer,
-      contactName: data.customer_details.name,
-      contactPhone: data.customer_details.phone,
-      contactEmail: data.customer_details.email,
+      numberInvoice: data.number,
+      contactName: data.customer_name,
+      contactPhone: data.customer_phone,
+      contactEmail: data.customer_email,
       shippingAddress: address,
       shippingCost: shippingCost / 100,
+      subtotal: amount_subtotal / 100,
+      totalAmount: total / 100,
       paymentStatus: paymentStatus,
-      totalAmount: (amount_subtotal + shippingCost) / 100,
       nroOrder: formattedOrderNumber,
     });
 

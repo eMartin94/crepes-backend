@@ -1,7 +1,9 @@
 import Stripe from '../libs/stripeConfig.js';
-import { STRIPE_ENDPOINT_SECRET } from '../config.js';
+import { FRONTEND_URL_LOCAL, STRIPE_ENDPOINT_SECRET } from '../config.js';
 import { createOrder } from './orderController.js';
 import Product from '../models/productModel.js';
+import { sendEmail } from './emailSender.js';
+import { emailTemplate } from '../utils/emailTemplate.js';
 
 export const createSession = async (req, res) => {
   const { cart, user } = req;
@@ -106,15 +108,17 @@ export const createSession = async (req, res) => {
       phone_number_collection: {
         enabled: true,
       },
-      success_url: 'http://localhost:3000/success',
-      cancel_url: 'http://localhost:3000/cancel',
+      // success_url: 'http://localhost:3000/success',
+      success_url: `${FRONTEND_URL_LOCAL}/checkout-success`,
+      cancel_url: `${FRONTEND_URL_LOCAL}/carrito`,
     });
     // if (!user) {
     //   res.clearCookie('tempCartId');
     //   res.clearCookie('cart');
     // }
-    // res.json(session);
-    res.send({ url: session.url });
+    // console.log(session);
+    res.json(session);
+    // res.send({ url: session.url });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: 'Something went wrong' });
@@ -150,15 +154,23 @@ export const webhook = async (req, res) => {
   try {
     switch (eventType) {
       case 'checkout.session.completed':
-        await handleCompletedPayment(data);
+        console.log('creando orden...');
         break;
       case 'checkout.session.async_payment_failed':
       case 'checkout.session.payment_failed':
         await handleFailedPayment(data);
         break;
       case 'invoice.sent':
+        await handleCompletedPayment(data);
         const invoiceLink = data.hosted_invoice_url;
-        console.log('invoiceLink: ', invoiceLink);
+        const customerEmail = data.customer_email;
+        const customerName = data.customer_name;
+        const words = customerName.split(' ');
+        const name = words[0];
+
+        const htmlContent = emailTemplate(name, invoiceLink);
+        sendEmail(customerEmail, 'Comprobante de Pago - CREPESAMOR', htmlContent);
+
         res.status(200).json({ invoiceLink });
         return;
       default:

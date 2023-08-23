@@ -30,6 +30,9 @@ const OrderModelSchema = new mongoose.Schema(
     codCustomer: {
       type: String,
     },
+    numberInvoice: {
+      type: String,
+    },
     contactPhone: {
       type: String,
     },
@@ -43,12 +46,16 @@ const OrderModelSchema = new mongoose.Schema(
       type: Number,
       // required: true,
     },
-    paymentStatus: {
-      type: String,
+    subtotal: {
+      type: Number,
+      required: true,
     },
     totalAmount: {
       type: Number,
       required: true,
+    },
+    paymentStatus: {
+      type: String,
     },
     status: {
       type: String,
