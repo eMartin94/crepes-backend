@@ -7,7 +7,7 @@ export const listUsers = async (req, res) => {
     const users = await User.find();
     return res.json(users);
   } catch (error) {
-    return res.status(500).json({ message: error.message });
+    return res.status(404).json({ message: error.message });
   }
 };
 
@@ -16,11 +16,12 @@ export const getUserById = async (req, res) => {
     const { userId } = req.params;
 
     const userFound = await User.findById(userId);
-    if (!userFound) return res.status(404).json({ message: 'Usuario no encontrado' });
+    if (!userFound)
+      return res.status(404).json({ message: 'Usuario no encontrado' });
 
     return res.json(userFound);
   } catch (error) {
-    return res.status(500).json({ message: error.message });
+    return res.status(404).json({ message: error.message });
   }
 };
 
@@ -33,7 +34,8 @@ export const createUser = async (req, res) => {
     const newUser = new User({ ...validateInput });
 
     const existingUser = await User.findOne({ email: validateInput.email });
-    if (existingUser) return res.status(400).json({ message: 'El usuario ya existe' });
+    if (existingUser)
+      return res.status(404).json({ message: 'El usuario ya existe' });
 
     const userSaved = await newUser.save();
     return res.json({
@@ -45,7 +47,7 @@ export const createUser = async (req, res) => {
       updatedAt: userSaved.updatedAt,
     });
   } catch (error) {
-    return res.status(400).json(error.errors.map((error) => error.message));
+    return res.status(404).json(error.errors.map((error) => error.message));
   }
 };
 
@@ -55,7 +57,8 @@ export const updateUserRole = async (req, res) => {
 
   try {
     const user = await User.findById(userId);
-    if (!user) return res.status(404).json({ message: 'Usuario no encontrado' });
+    if (!user)
+      return res.status(404).json({ message: 'Usuario no encontrado' });
 
     user.role = role;
     await user.save();
@@ -70,6 +73,8 @@ export const updateUserRole = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
-    return res.status(500).json({ message: 'Error al actualizar el rol del usuario' });
+    return res
+      .status(500)
+      .json({ message: 'Error al actualizar el rol del usuario' });
   }
 };

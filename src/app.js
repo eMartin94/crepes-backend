@@ -1,6 +1,9 @@
 import express from 'express';
 import morgan from 'morgan';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
+import session from 'express-session';
+// import passport from 'passport';
 import productRoutes from './routes/productRoutes.js';
 import categoryRoutes from './routes/categoryRoutes.js';
 import authRoutes from './routes/authRoutes.js';
@@ -8,14 +11,15 @@ import userRoutes from './routes/userRoutes.js';
 import cartRoutes from './routes/cartRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
 import stripeRoutes from './routes/stripeRoutes.js';
-import cookieParser from 'cookie-parser';
-import session from 'express-session';
 import dotenv from 'dotenv';
+import { FRONTEND_URL_LOCAL, FRONTEND_URL_PRODUCCION } from './config.js';
+
 dotenv.config();
 const app = express();
 
 app.use(morgan('dev'));
 
+// app.use(cors());
 app.use(
   session({
     secret: process.env.SESSION_SECRET,
@@ -32,7 +36,7 @@ app.use(
 
 app.use(
   cors({
-    origin: [process.env.FRONTEND_URL_LOCAL, process.env.FRONTEND_URL_PRODUCCION],
+    origin: [FRONTEND_URL_LOCAL, FRONTEND_URL_PRODUCCION],
     methods: ['GET', 'POST', 'PATCH', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
@@ -41,14 +45,18 @@ app.use(
 );
 
 app.use(cookieParser());
+app.use('/api/v1', stripeRoutes);
 
-app.use('/api', stripeRoutes);
 app.use(express.json());
-app.use('/api', authRoutes);
-app.use('/api', userRoutes);
-app.use('/api', productRoutes);
-app.use('/api', categoryRoutes);
-app.use('/api', cartRoutes);
-app.use('/api', orderRoutes);
+
+// app.use(passport.initialize());
+// app.use(passport.session());
+
+app.use('/api/v1', authRoutes);
+app.use('/api/v1', userRoutes);
+app.use('/api/v1', productRoutes);
+app.use('/api/v1', categoryRoutes);
+app.use('/api/v1', cartRoutes);
+app.use('/api/v1', orderRoutes);
 
 export default app;

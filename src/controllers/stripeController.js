@@ -2,17 +2,20 @@ import Stripe from '../libs/stripeConfig.js';
 import { FRONTEND_URL_LOCAL, STRIPE_ENDPOINT_SECRET } from '../config.js';
 import { createOrder } from './orderController.js';
 import Product from '../models/productModel.js';
-import { sendEmail } from './emailSender.js';
+import { sendEmail } from '../libs/emailSender.js';
 import { emailTemplate } from '../utils/emailTemplate.js';
 
 export const createSession = async (req, res) => {
   const { cart, user } = req;
+  console.log(user);
+  console.log(cart);
 
   if (!cart.items || cart.items.length === 0)
-    return res.status(400).json({ message: 'El carrito está vacío' });
+    return res.status(404).json({ message: 'El carrito está vacío' });
 
   try {
-    if (!cart) return res.status(404).json({ message: 'Carrito no encontrado' });
+    if (!cart)
+      return res.status(404).json({ message: 'Carrito no encontrado' });
     const productIds = cart.items.map((item) => item.product);
     const products = await Product.find({
       _id: { $in: productIds },
@@ -20,14 +23,15 @@ export const createSession = async (req, res) => {
 
     const customer = await Stripe.customers.create({
       metadata: {
-        userId: user ? user.id : null,
+        userId: user ? JSON.stringify(user) : null,
         cart: JSON.stringify(cart),
       },
     });
-    // console.log('customer: ', customer);
 
     const lineItems = cart.items.map((item) => {
-      const product = products.find((p) => p._id.toString() === item.product.toString());
+      const product = products.find(
+        (p) => p._id.toString() === item.product.toString()
+      );
       return {
         price_data: {
           currency: 'pen',
@@ -51,15 +55,6 @@ export const createSession = async (req, res) => {
       invoice_creation: {
         enabled: true,
       },
-      // invoice_creation: {
-      //   enabled: true,
-      //   invoice_data: {
-      //     description: 'Invoice for Product X',
-      //     metadata: {
-      //       order: 'order-xyz',
-      //     },
-      //   },
-      // },
       shipping_options: [
         {
           shipping_rate_data: {
@@ -85,7 +80,7 @@ export const createSession = async (req, res) => {
           shipping_rate_data: {
             type: 'fixed_amount',
             fixed_amount: {
-              amount: 1500,
+              amount: 700,
               currency: 'pen',
             },
             display_name: 'Envío a domicilio',
@@ -108,20 +103,14 @@ export const createSession = async (req, res) => {
       phone_number_collection: {
         enabled: true,
       },
-      // success_url: 'http://localhost:3000/success',
       success_url: `${FRONTEND_URL_LOCAL}/checkout-success`,
       cancel_url: `${FRONTEND_URL_LOCAL}/carrito`,
     });
-    // if (!user) {
-    //   res.clearCookie('tempCartId');
-    //   res.clearCookie('cart');
-    // }
-    // console.log(session);
     res.json(session);
     // res.send({ url: session.url });
   } catch (error) {
     console.log(error);
-    res.status(500).json({ message: 'Something went wrong' });
+    res.status(404).json({ message: 'Something went wrong' });
   }
 };
 
@@ -140,7 +129,7 @@ export const webhook = async (req, res) => {
       console.log('Webhook event received:', event.type);
     } catch (err) {
       console.log(`Webhook Error: ${err.message}`);
-      res.status(400).send(`Webhook Error: ${err.message}`);
+      res.status(404).send(`Webhook Error: ${err.message}`);
       return;
     }
     data = event.data.object;
@@ -169,7 +158,11 @@ export const webhook = async (req, res) => {
         const name = words[0];
 
         const htmlContent = emailTemplate(name, invoiceLink);
-        sendEmail(customerEmail, 'Comprobante de Pago - CREPESAMOR', htmlContent);
+        sendEmail(
+          customerEmail,
+          'Comprobante de Pago - CREPESAMOR',
+          htmlContent
+        );
 
         res.status(200).json({ invoiceLink });
         return;
@@ -178,9 +171,10 @@ export const webhook = async (req, res) => {
     }
 
     res.status(200).send('Webhook successfully processed.');
+    // res.json(data);
   } catch (err) {
     console.log('Error handling event:', err);
-    res.status(500).send('Internal server error.');
+    res.status(404).send('Internal server error.');
   }
 };
 

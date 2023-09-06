@@ -5,7 +5,10 @@ import {
   listAllOrders,
   updateOrderStatus,
 } from '../controllers/orderController.js';
-import { verifyTokenAndAdmin, verifyTokenAndFindCart } from '../middlewares/validateToken.js';
+import {
+  verifyTokenAndAdmin,
+  verifyTokenAndFindCart,
+} from '../middlewares/validateToken.js';
 import validateRole from '../middlewares/checkRole.js';
 
 const router = Router();

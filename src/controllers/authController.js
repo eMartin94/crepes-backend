@@ -7,9 +7,14 @@ export const register = async (req, res) => {
   const { email, password, username } = req.body;
   try {
     const userFound = await User.findOne({ email });
-    if (userFound) return res.status(400).json(['El usuario ya existe']);
+    if (userFound) return res.status(404).json(['El usuario ya existe']);
     const passwordHash = await bcrypt.hash(password, 10);
-    const newUser = new User({ email, password: passwordHash, username, role: 'customer' });
+    const newUser = new User({
+      email,
+      password: passwordHash,
+      username,
+      role: 'customer',
+    });
     const userSaved = await newUser.save();
     const token = await crearTokenAcceso({ id: userSaved._id });
     res.cookie('token', token);
@@ -22,7 +27,7 @@ export const register = async (req, res) => {
       updatedAt: userSaved.updatedAt,
     });
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(404).json({ message: error.message });
   }
 };
 
@@ -30,9 +35,11 @@ export const login = async (req, res) => {
   const { email, password } = req.body;
   try {
     const userFound = await User.findOne({ email });
-    if (!userFound) return res.status(404).json({ message: 'Usuario no encontrado' });
+    if (!userFound)
+      return res.status(404).json({ message: 'Usuario no encontrado' });
     const isMatch = await bcrypt.compare(password, userFound.password);
-    if (!isMatch) return res.status(404).json({ message: 'Contraseña incorrecta' });
+    if (!isMatch)
+      return res.status(404).json({ message: 'Contraseña incorrecta' });
     const token = await crearTokenAcceso({
       id: userFound._id,
       username: userFound.username,
@@ -48,7 +55,7 @@ export const login = async (req, res) => {
       updatedAt: userFound.updatedAt,
     });
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(404).json({ message: error.message });
   }
 };
 
@@ -61,7 +68,8 @@ export const logout = async (req, res) => {
 
 export const profile = async (req, res) => {
   const userFound = await User.findById(req.user.id);
-  if (!userFound) return res.status(404).json({ message: 'Usuario no encontrado' });
+  if (!userFound)
+    return res.status(404).json({ message: 'Usuario no encontrado' });
   return res.json({
     id: userFound._id,
     email: userFound.email,
@@ -76,7 +84,8 @@ export const createAdministrator = async (req, res) => {
   const { email, password, username } = req.body;
   try {
     const existingUser = await User.findOne({ email });
-    if (existingUser) return res.status(400).json({ message: 'El usuario ya existe' });
+    if (existingUser)
+      return res.status(404).json({ message: 'El usuario ya existe' });
     const passwordHash = await bcrypt.hash(password, 10);
     const newAdministrator = new User({
       email,
@@ -96,7 +105,7 @@ export const createAdministrator = async (req, res) => {
       updatedAt: administratorSaved.updatedAt,
     });
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(404).json({ message: error.message });
   }
 };
 

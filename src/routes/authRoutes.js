@@ -19,6 +19,10 @@ router.post('/login', validateSchema(loginSchema), login);
 router.post('/logout', logout);
 router.get('/verify', verifyToken);
 router.get('/profile', authRequired, profile);
-router.post('/createAdministrator', validateRole(['administrator']), createAdministrator);
+router.post(
+  '/createAdministrator',
+  validateRole(['administrator']),
+  createAdministrator
+);
 
 export default router;

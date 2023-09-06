@@ -5,10 +5,18 @@ import Cart from '../models/cartModel.js';
 
 export const createOrder = async (customer, data) => {
   try {
-    const cart = JSON.parse(customer.metadata.cart);
-    const user = JSON.stringify(customer.metadata.userId);
+    // const user = JSON.parse(customer.metadata.userId);
+    // const cart = JSON.parse(customer.metadata.cart);
+    const user = customer.metadata.userId
+      ? JSON.parse(customer.metadata.userId)
+      : null;
+    const cart = customer.metadata.cart
+      ? JSON.parse(customer.metadata.cart)
+      : null;
+    console.log(user);
 
-    if (!cart) return res.status(404).json({ message: 'Carrito no encontrado' });
+    if (!cart)
+      return res.status(404).json({ message: 'Carrito no encontrado' });
 
     const productIds = cart.items.map((item) => item.product);
     const products = await Product.find({
@@ -16,7 +24,9 @@ export const createOrder = async (customer, data) => {
     });
 
     const itemsWithPrice = cart.items.map((item) => {
-      const product = products.find((p) => p._id.toString() === item.product.toString());
+      const product = products.find(
+        (p) => p._id.toString() === item.product.toString()
+      );
       return {
         product: item.product,
         quantity: item.quantity,
@@ -30,7 +40,9 @@ export const createOrder = async (customer, data) => {
     const total = data.total;
     let paymentStatus;
     // data.payment_status === 'paid' ? (paymentStatus = 'Pagado') : (paymentStatus = 'Pendiente');
-    data.status === 'paid' ? (paymentStatus = 'Pagado') : (paymentStatus = 'Fallido');
+    data.status === 'paid'
+      ? (paymentStatus = 'Pagado')
+      : (paymentStatus = 'Fallido');
 
     const counter = await OrderNumber.findOneAndUpdate(
       { name: 'orderCounter' },
@@ -82,7 +94,7 @@ export const listOrder = async (req, res) => {
       );
     return res.json({ orders });
   } catch (error) {
-    return res.status(500).json({ message: 'Error al listar las órdenes' });
+    return res.status(404).json({ message: 'Error al listar las órdenes' });
   }
 };
 
@@ -90,9 +102,12 @@ export const listAllOrders = async (req, res) => {
   try {
     if (
       !req.user ||
-      (!req.user.role.includes('administrator') && !req.user.role.includes('seller'))
+      (!req.user.role.includes('administrator') &&
+        !req.user.role.includes('seller'))
     ) {
-      return res.status(403).json({ message: 'Forbidden - Admin or Seller access required' });
+      return res
+        .status(403)
+        .json({ message: 'Forbidden - Admin or Seller access required' });
     }
 
     const orders = await Order.find()
@@ -105,7 +120,9 @@ export const listAllOrders = async (req, res) => {
 
     return res.json({ orders });
   } catch (error) {
-    return res.status(500).json({ message: 'Error al listar todas las órdenes' });
+    return res
+      .status(500)
+      .json({ message: 'Error al listar todas las órdenes' });
   }
 };
 
@@ -114,12 +131,18 @@ export const updateOrderStatus = async (req, res) => {
   const { newStatus } = req.body;
 
   try {
-    const order = await Order.findByIdAndUpdate(orderId, { status: newStatus }, { new: true });
+    const order = await Order.findByIdAndUpdate(
+      orderId,
+      { status: newStatus },
+      { new: true }
+    );
 
     if (!order) return res.status(404).json({ message: 'Orden no encontrada' });
 
     return res.json({ order });
   } catch (error) {
-    return res.status(500).json({ message: 'Error al actualizar el estado de la orden' });
+    return res
+      .status(500)
+      .json({ message: 'Error al actualizar el estado de la orden' });
   }
 };

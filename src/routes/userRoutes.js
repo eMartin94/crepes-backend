@@ -9,6 +9,7 @@ import { verifyTokenAndAdmin } from '../middlewares/validateToken.js';
 
 const router = Router();
 
+// Ruta accesible solo para administradores
 router.get('/user', verifyTokenAndAdmin, listUsers);
 router.get('/user/:userId', verifyTokenAndAdmin, getUserById);
 router.post('/user', verifyTokenAndAdmin, createUser);
